@@ -1,54 +1,125 @@
 ЗАДАНИЕ 1. Создание и наполнение базы данных
 
-Жанры
+-- Таблица жанров
+CREATE TABLE Genres (
+    Genres_ID SERIAL PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL
+);
+
+-- Таблица исполнителей
+CREATE TABLE Artist (
+    Artist_ID SERIAL PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL
+);
+
+-- Связь исполнителей с жанрами
+CREATE TABLE Artist_Genres (
+    ArtGen_ID SERIAL PRIMARY KEY,
+    Artist_ID INT REFERENCES Artist(Artist_ID),
+    Genres_ID INT REFERENCES Genres(Genres_ID)
+);
+
+-- Таблица альбомов
+CREATE TABLE Albums (
+    Albums_ID SERIAL PRIMARY KEY,
+    Title VARCHAR(200) NOT NULL,
+    Release_year INT
+);
+
+-- Связь альбомов с исполнителями
+CREATE TABLE Album_Artist (
+    AlbArt_ID SERIAL PRIMARY KEY,
+    Album_ID INT REFERENCES Albums(Albums_ID),
+    Artist_ID INT REFERENCES Artist(Artist_ID)
+);
+
+-- Таблица треков
+CREATE TABLE Tracks (
+    Track_ID SERIAL PRIMARY KEY,
+    Title VARCHAR(200) NOT NULL,
+    Duration INT,
+    Album_ID INT REFERENCES Albums(Albums_ID)
+);
+
+-- Таблица сборников
+CREATE TABLE Compilations (
+    Comp_ID SERIAL PRIMARY KEY,
+    Title VARCHAR(200),
+    Release_year INT
+);
+
+-- Связь сборников с треками
+CREATE TABLE Compilations_Tracks (
+    CompTrack_ID SERIAL PRIMARY KEY,
+    Comp_ID INT REFERENCES Compilations(Comp_ID),
+    Track_ID INT REFERENCES Tracks(Track_ID)
+);
+
+-- Наполнение таблиц
+
+-- Жанры
 INSERT INTO Genres (Genres_ID, Name) VALUES
 (1, 'Rock'),
 (2, 'Pop'),
 (3, 'Jazz');
 
-Исполнители
-INSERT INTO Artist (Artist_ID, Name, Genres_ID) VALUES
-(1, 'Queen', 1),
-(2, 'Adele', 2),
-(3, 'Miles Davis', 3),
-(4, 'Muse', 1);
+-- Исполнители
+INSERT INTO Artist (Artist_ID, Name) VALUES
+(1, 'Queen'),
+(2, 'Adele'),
+(3, 'Miles Davis'),
+(4, 'Muse');
 
-Альбомы
-INSERT INTO Albums (Albums_ID, Title, Release_year, Artist_ID) VALUES
-(1, 'A Night at the Opera', 1975, 1),
-(2, '25', 2015, 2),
-(3, 'Kind of Blue', 1959, 3);
-
-Треки
-INSERT INTO Tracks (Track_ID, Title, Duration, Album_ID) VALUES
-(1, 'Bohemian Rhapsody', 354, 1),
-(2, 'Love of My Life', 220, 1),
-(3, 'Hello', 295, 2),
-(4, 'When We Were Young', 298, 2),
-(5, 'So What', 545, 3),
-(6, 'Freddie Freeloader', 586, 3);
-
-Сборники
-INSERT INTO Compilations (Comp_ID, Title, Release_year) VALUES
-(1, 'Rock Hits', 2018),
-(2, 'Pop Anthems', 2019),
-(3, 'Jazz Legends', 2020),
-(4, 'Best of All Time', 2021);
-
-Связи исполнителей и жанров
+-- Связи исполнителей и жанров
 INSERT INTO Artist_Genres (ArtGen_ID, Artist_ID, Genres_ID) VALUES
 (1, 1, 1),
 (2, 2, 2),
 (3, 3, 3),
 (4, 4, 1);
 
-Связи альбомов и исполнителей
+-- Альбомы
+INSERT INTO Albums (Albums_ID, Title, Release_year) VALUES
+(1, 'A Night at the Opera', 1975),
+(2, '25', 2015),
+(3, 'Kind of Blue', 1959),
+(4, 'Simulation Theory', 2020);  -- добавлен альбом 2020 года
+
+-- Связи альбомов и исполнителей
 INSERT INTO Album_Artist (AlbArt_ID, Album_ID, Artist_ID) VALUES
 (1, 1, 1),
 (2, 2, 2),
-(3, 3, 3);
+(3, 3, 3),
+(4, 4, 4);
 
-Связи сборников и треков
+-- Треки (основные + тестовые для задания 2.5)
+INSERT INTO Tracks (Track_ID, Title, Duration, Album_ID) VALUES
+(1, 'Bohemian Rhapsody', 354, 1),
+(2, 'Love of My Life', 220, 1),
+(3, 'Hello', 295, 2),
+(4, 'When We Were Young', 298, 2),
+(5, 'So What', 545, 3),
+(6, 'Freddie Freeloader', 586, 3),
+(7, 'my own', 180, 1),
+(8, 'own my', 180, 1),
+(9, 'my', 180, 1),
+(10, 'oh my god', 180, 1),
+(11, 'myself', 180, 1),
+(12, 'by myself', 180, 1),
+(13, 'bemy self', 180, 1),
+(14, 'myself by', 180, 1),
+(15, 'by myself by', 180, 1),
+(16, 'beemy', 180, 1),
+(17, 'premyne', 180, 1),
+(18, 'The Dark Side', 242, 4); -- трек в альбоме 2020 года
+
+-- Сборники
+INSERT INTO Compilations (Comp_ID, Title, Release_year) VALUES
+(1, 'Rock Hits', 2018),
+(2, 'Pop Anthems', 2019),
+(3, 'Jazz Legends', 2020),
+(4, 'Best of All Time', 2021);
+
+-- Связи сборников и треков
 INSERT INTO Compilations_Tracks (CompTrack_ID, Comp_ID, Track_ID) VALUES
 (1, 1, 1),
 (2, 1, 2),
@@ -58,6 +129,7 @@ INSERT INTO Compilations_Tracks (CompTrack_ID, Comp_ID, Track_ID) VALUES
 (6, 3, 6),
 (7, 4, 1),
 (8, 4, 3);
+
 
 ЗАДАНИЕ 2. SELECT-запросы
 
@@ -85,7 +157,7 @@ WHERE Name NOT LIKE '% %';
 5. Название треков, которые содержат слово «мой» или «my»
 SELECT Title
 FROM Tracks
-WHERE Title ILIKE '%мой%' OR Title ILIKE '%my%';
+WHERE Title ~* '\m(my|мой)\M';
 
 ЗАДАНИЕ 3. SELECT-запросы
 
@@ -108,11 +180,12 @@ JOIN Tracks t ON a.Albums_ID = t.Album_ID
 GROUP BY a.Title;
 
 4. Все исполнители, которые не выпустили альбомы в 2020 году
-SELECT DISTINCT ar.Name
-FROM Artist ar
-WHERE ar.Artist_ID NOT IN (
-    SELECT DISTINCT a.Artist_ID
-    FROM Albums a
+SELECT Name
+FROM Artist
+WHERE Artist_ID NOT IN (
+    SELECT DISTINCT aa.Artist_ID
+    FROM Album_Artist aa
+    JOIN Albums a ON aa.Album_ID = a.Albums_ID
     WHERE a.Release_year = 2020
 );
 
@@ -122,5 +195,6 @@ FROM Compilations c
 JOIN Compilations_Tracks ct ON c.Comp_ID = ct.Comp_ID
 JOIN Tracks t ON ct.Track_ID = t.Track_ID
 JOIN Albums a ON t.Album_ID = a.Albums_ID
-JOIN Artist ar ON a.Artist_ID = ar.Artist_ID
+JOIN Album_Artist aa ON a.Albums_ID = aa.Album_ID
+JOIN Artist ar ON aa.Artist_ID = ar.Artist_ID
 WHERE ar.Name = 'Queen';
